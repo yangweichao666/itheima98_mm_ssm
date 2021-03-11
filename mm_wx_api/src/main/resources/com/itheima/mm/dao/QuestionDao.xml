@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!--引入的约束-->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mm.dao.QuestionDao">
+    <select id="findTAG" parameterType="Map" resultType="Map">
+     select id ,name title,
+
+(select count(*) from t_question where catalogId=c.id) allCount ,
+
+(SELECT count(*) from tr_member_question where memberId=#{memberId} and questionId in
+(select id from t_question WHERE catalogId=c.id )) finishedCount
+
+from t_catalog c where courseId=#{memberCourseId}
+    </select>
+    <select id="findCompany" parameterType="Map" resultType="Map">
+     select id,shortName title,isFamous,
+
+(select count(*) from t_question where companyId=c.id) allCount,
+
+(SELECT count(*) from tr_member_question where memberId=#{memberId} and questionId in
+(select id from t_question WHERE companyId=c.id )) finishedCount
+from t_company c
+where cityId=#{memberCityId}
+
+    </select>
+    <sql id="categoryKind">
+        <if test="categoryKind == '1'">
+            where catalogId=#{categoryID}
+        </if>
+        <if test="categoryKind == '2'">
+            where companyId=#{categoryID}
+        </if>
+    </sql>
+
+    <select id="findAllCount" parameterType="Map" resultType="long">
+        select count(*) from t_question
+        <!--
+        判断 到底是需要企业查询还是按照技术点二级目录查询
+        -->
+        <include refid="categoryKind"></include>
+
+    </select>
+
+    <resultMap id="questionMap" type="Question">
+        <id column="id" property="id"></id>
+        <!--    调用外部查询 查询tags-->
+        <collection property="tags" column="id" select="com.itheima.mm.dao.TagDao.findTagListQuestionId"></collection>
+        <!--        调用外部查询 查询 selection-->
+        <collection property="selection" column="id"
+                    select="com.itheima.mm.dao.QuestionItemDao.findQuestionItemListByQuestionId"></collection>
+
+
+    </resultMap>
+
+
+    <select id="findQuestionListByCategoryId" resultMap="questionMap" parameterType="map" resultType="Question">
+        select
+        id,subject title,difficulty grade,
+        analysis content,analysisVideo video,type,
+
+        (select count(*) from tr_member_question
+        where memberId=#{memberId} and questionId=q.id) isFinished,
+
+        (select ifnull(isFavorite,0) from tr_member_question
+        where memberId=#{memberId} and questionId=q.id) isFavorite,
+
+        (select answerResult from tr_member_question
+        where memberId=#{memberId} and questionId=q.id) answerResult,
+
+        (select tag from tr_member_question
+        where memberId=#{memberId} and questionId=q.id) answerIsRight
+        <!--判断是否是按照企业查询  是否是名企-->
+        <if test="categoryKind =='2'">
+            ,(select isFamous from t_company where id=#{categoryId}) isFamous
+        </if>
+        from t_question q
+        <include refid="categoryKind"></include>
+    </select>
+
+<!--    查询最后一道题目的id-->
+    <select id="findLastQuestionId" parameterType="map" resultType="int">
+        select ifnull( lastQuestionId,0) from t_wx_member where id =#{memberId}
+        <if test="categoryKind =='1'">
+        and lastQuestionId in (select id from t_question  where catalogId=#{categoryID})
+
+        </if>
+        <if test="categoryKind =='2'">
+            and lastQuestionId in (select id from t_question  where  where companyId=#{categoryID})
+
+        </if>
+    </select>
+    
+    <select id="findByMemberIdAndQuestionId" parameterType="map" resultType="map">
+        select * from tr_member_question where memberId=#{memberId} and questionId=#{id}
+    </select>
+    <update id="updateMemberQuestion" parameterType="map">
+        update  tr_member_question set  isFavorite=#{isFavorite},tag=#{tag},answerResult=#{answerResult}
+        where memberId=#{memberId} and question=#{id}
+    </update>
+
+    <insert id="addMemberQuestion" parameterType="map">
+    insert into tr_member_question(memberId,questionId,isFavorite,tag,answerResult)
+    values (#{memberId},#{id},#{isFavorite},#{tag},#{answerResult})
+   </insert>
+
+</mapper>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><!--引入的约束-->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace属性: 该属性的值就是接口类的全限定名-->
+<mapper namespace="com.itheima.mm.dao.UserDao">
+    <select id="findByUsername" resultType="User" parameterType="string">
+      select * from t_user where  username=#{username}
+
+    </select>
+</mapper>

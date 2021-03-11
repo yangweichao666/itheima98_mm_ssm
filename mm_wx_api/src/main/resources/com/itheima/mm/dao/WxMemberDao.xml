@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!--引入的约束-->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mm.dao.WxMemberDao">
+    <select id="wxMemberLogin" resultType="WxMember" parameterType="WxMember">
+        select * from t_wx_member where nickName=#{nickName}
+
+    </select>
+
+
+    <insert id="wxMemberAdd" parameterType="WxMember">
+        insert into t_wx_member(nickName,avatarUrl,gender,city,province,language ,createTime)
+        values(#{nickName},#{avatarUrl},#{gender},#{city},#{province},#{language},#{createTime})
+        <selectKey keyProperty="id" keyColumn="id" resultType="int" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+    </insert>
+    <!---->
+    <select id="findById" parameterType="int" resultType="WxMember">
+    select * from t_wx_member where id=#{id}
+    </select>
+
+
+    <update id="update" parameterType="WxMember" >
+        UPDATE t_wx_member  set nickName=#{nickName} , avatarUrl=#{avatarUrl}, gender= #{gender} ,province= #{province},
+        country= #{country},language= #{language},openId= #{openId},unionId=#{unionId},
+        cityId=#{cityId}, courseId=#{courseId}, lastCategoryKind=#{lastCategoryKind},lastCategoryType=#{lastCategoryType},lastCategoryId=#{lastCategoryId}  ,lastQuestionId=#{lastQuestionId}
+         WHERE id=#{id}
+    </update>
+
+<!--    查询用户个人信息-->
+    <select id="findAnswerCount" resultType="java.lang.Integer">
+      select count(*) from tr_member_question where memberId=#{id}
+
+    </select>
+    <select id="findCityCategory" resultType="com.itheima.mm.pojo.Dict" parameterType="WxMember">
+      select * from t_dict where id=#{cityId}
+    </select>
+    <select id="findLastCategoryTitle" resultType="java.lang.String" parameterType="WxMember">
+        select
+        <if test="lastCategoryKind == 1">
+            name from t_catalog
+        </if>
+        <if test="lastCategoryKind==2">
+            shortName from  t_company
+
+        </if>
+        where id=#{lastCategoryId}
+
+
+    </select>
+</mapper>

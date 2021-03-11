@@ -1,0 +1,4 @@
+# Project exclude paths
+/mm_backend_management/target/
+/mm_wx_api/target/
+/out/
